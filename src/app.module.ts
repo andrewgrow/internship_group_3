@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
-import configuration from './config/configuration';
+import { configuration, validationSchema } from './config/configuration';
+
 @Module({
   imports: [
     UsersModule,
@@ -9,6 +10,7 @@ import configuration from './config/configuration';
       isGlobal: true,
       load: [configuration],
       cache: true,
+      validationSchema: validationSchema,
     }),
   ],
 })
