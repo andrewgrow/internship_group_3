@@ -1,7 +1,15 @@
 import { Module } from '@nestjs/common';
-import { BooksModule } from './books/books.module';
 import { UsersModule } from './users/users.module';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './config/configuration';
 @Module({
-  imports: [BooksModule, UsersModule],
+  imports: [
+    UsersModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      cache: true,
+    }),
+  ],
 })
 export class AppModule {}

@@ -6,6 +6,9 @@ $ npm install
 
 ## Running the app
 
+* Do first: copy file with rename `.env.example` to `.env` by command
+* `cp ./.env.example ./.env`
+
 ```bash
 # development
 $ npm run start
