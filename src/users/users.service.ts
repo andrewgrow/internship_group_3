@@ -4,112 +4,73 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from './users.interface';
+import { User, UserDocument } from './users.schema';
 import { CreateUserDto } from './dto/create.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [
-    {
-      id: 0,
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      password: 'qwerty',
-    },
-  ];
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  getAll(): User[] {
-    return this.users;
+  async getAll(): Promise<User[]> {
+    return await this.userModel.find().exec();
   }
 
-  createUser(createUserDto: CreateUserDto): User {
-    const id = this.users.length;
-
-    if (createUserDto.email && this.isEmailAlreadyExist(createUserDto.email)) {
+  async createUser(createUserDto: CreateUserDto): Promise<User> {
+    if (await this.isEmailAlreadyExist(createUserDto.email)) {
       throw new ConflictException('Email already taken');
     }
 
-    const user: User = {
-      id: id,
-      firstName: createUserDto.firstName || `f${id}`,
-      lastName: createUserDto.lastName || `l${id}`,
-      email: createUserDto.email || `email${id}@example.com`,
-      password: createUserDto.password || 'encryptedHash',
-    };
-
-    this.users.push(user);
-
-    return user;
-  }
-
-  private isEmailAlreadyExist(email: string) {
-    let result = false;
-    this.users.forEach((user) => {
-      if (email === user.email) {
-        result = true;
-      }
-
-      return user;
-    });
+    const user = new this.userModel(createUserDto);
+    await user.validate();
+    const result = await user.save();
 
     return result;
   }
 
-  updateUser(id, updateUserDto): User {
-    this.checkId(id);
-
-    this.users = this.users.map((user) => {
-      if (id === user.id) {
-        user.email = updateUserDto.email ?? user.email;
-        user.password = updateUserDto.password ?? user.password;
-        user.firstName = updateUserDto.firstName ?? user.firstName;
-        user.lastName = updateUserDto.lastName ?? user.lastName;
-      }
-
-      return user;
-    });
-
-    return this.users[id];
+  private async isEmailAlreadyExist(email: string) {
+    const result = await this.userModel.findOne({ email: email });
+    return result !== null;
   }
 
-  private checkId(id) {
-    if (id < 0 || id >= this.users.length) {
-      throw new ImATeapotException('Please select correct ID');
+  async updateUser(id, updateUserDto): Promise<User> {
+    const userDb = await this.userModel.findById(id);
+
+    if (userDb === null) {
+      throw new Error(`User with id ${id} not found for patching!`);
     }
+    if (updateUserDto.firstName) {
+      userDb.firstName = updateUserDto.firstName;
+    }
+    if (updateUserDto.lastName) {
+      userDb.lastName = updateUserDto.lastName;
+    }
+    if (updateUserDto.email) {
+      userDb.email = updateUserDto.email;
+    }
+    if (updateUserDto.password) {
+      userDb.password = updateUserDto.password;
+    }
+
+    const result = await userDb.save();
+
+    return result;
   }
 
-  deleteUser(id: number) {
-    this.checkId(id);
+  async deleteUser(id) {
+    const result = await this.userModel.findByIdAndDelete(id);
 
-    let result = 'failure. ID is wrong or user was removed already early.';
-
-    this.users = this.users.map((user) => {
-      if (id === user.id) {
-        result = 'success';
-        user.id = null;
-        user.email = null;
-        user.password = null;
-        user.firstName = null;
-        user.lastName = null;
-      }
-
-      return user;
-    });
-
-    return `Deleting user ${id}: ${result}`;
-  }
-
-  getUserById(id) {
-    let result: User = null;
-    this.users.forEach((user) => {
-      if (user.id === id) {
-        result = user;
-      }
-    });
     if (result === null) {
-      throw new NotFoundException(`User with id ${id} not found.`);
+      throw new NotFoundException('User account not found for deleting!');
     }
-    return result;
+
+    return {
+      message: 'Your account has been deleted. Good bye!',
+    };
+  }
+
+  async getUserById(id): Promise<User> {
+    return this.userModel.findById(id);
   }
 }

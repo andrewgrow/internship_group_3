@@ -5,7 +5,7 @@ import {
   IsString,
   Length,
 } from 'class-validator';
-import { User } from '../users.interface';
+import { User } from '../users.schema';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto implements Partial<User> {

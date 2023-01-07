@@ -12,7 +12,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create.dto';
-import { User } from './users.interface';
+import { User } from './users.schema';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update.dto';
 import { ApiBody, ApiTags, ApiResponse } from '@nestjs/swagger';
@@ -27,8 +27,8 @@ export class UsersController {
     status: 200,
     description: 'The records have been successfully found.',
   })
-  get(): User[] {
-    return this.usersService.getAll();
+  async get(): Promise<User[]> {
+    return await this.usersService.getAll();
   }
 
   @Post()
@@ -47,8 +47,8 @@ export class UsersController {
   })
   @HttpCode(201)
   @UsePipes(ValidationPipe)
-  create(@Body() createUserDto: CreateUserDto): User {
-    return this.usersService.createUser(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+    return await this.usersService.createUser(createUserDto);
   }
 
   @Get('/:id')
