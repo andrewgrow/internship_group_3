@@ -40,8 +40,13 @@ export class UsersController {
   }
 
   @Delete('/:id')
-  @UsePipes(ValidationPipe)
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.deleteUser(id);
+  }
+
+  @Get('/:id')
+  @UsePipes(ValidationPipe)
+  getUserById(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.getUserById(id);
   }
 }
