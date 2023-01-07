@@ -18,6 +18,7 @@ export const configuration = () => ({
       process.env.NODE_ENV === 'test'
         ? `${process.env.DB_DATABASE_NAME}-test`
         : process.env.DB_DATABASE_NAME,
+    uri: `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}`,
   },
 });
 
