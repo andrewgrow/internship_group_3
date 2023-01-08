@@ -1,9 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { UsersModule } from '../users/users.module';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { AppJwtService } from './app.jwt.service';
+import { AppJwtGuard } from './app.jwt.guard';
 
 const jwtFactory = {
   useFactory: async (configService: ConfigService) => ({
@@ -16,8 +15,8 @@ const jwtFactory = {
 };
 
 @Module({
-  imports: [JwtModule.registerAsync(jwtFactory), UsersModule],
-  controllers: [AuthController],
-  providers: [AuthService],
+  imports: [JwtModule.registerAsync(jwtFactory)],
+  providers: [AppJwtService, AppJwtGuard],
+  exports: [AppJwtService, AppJwtGuard],
 })
-export class AuthModule {}
+export class AppJwtModule {}

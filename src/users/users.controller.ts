@@ -8,6 +8,7 @@ import {
   Post,
   UsePipes,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create.dto';
 import { User } from './users.schema';
@@ -18,9 +19,11 @@ import {
   CreateUserValidationPipe,
   UpdateUserValidationPipe,
 } from './pipes/validation.pipe';
+import { AppJwtGuard } from '../security/jwt/app.jwt.guard';
 
 @ApiTags('Users')
 @Controller('/users')
+@UseGuards(AppJwtGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 

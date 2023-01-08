@@ -1,10 +1,11 @@
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   Body,
-  Controller, HttpCode,
+  Controller,
+  HttpCode,
   Post,
   UsePipes,
-  ValidationPipe
+  ValidationPipe,
 } from '@nestjs/common';
 import { SignInDto } from './dto/signin.dto';
 import { AuthService } from './auth.service';

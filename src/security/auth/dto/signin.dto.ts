@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '../../users/users.schema';
+import { User } from '../../../users/users.schema';
 
 export class SignInDto implements Partial<User> {
   @ApiProperty({
