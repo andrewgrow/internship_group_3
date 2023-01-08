@@ -4,11 +4,9 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   UsePipes,
-  ValidationPipe,
   HttpCode,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create.dto';
@@ -16,6 +14,10 @@ import { User } from './users.schema';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update.dto';
 import { ApiBody, ApiTags, ApiResponse } from '@nestjs/swagger';
+import {
+  CreateUserValidationPipe,
+  UpdateUserValidationPipe,
+} from './pipes/validation.pipe';
 
 @ApiTags('Users')
 @Controller('/users')
@@ -46,7 +48,7 @@ export class UsersController {
     description: 'Email is already taken. Set other email or log in.',
   })
   @HttpCode(201)
-  @UsePipes(ValidationPipe)
+  @UsePipes(CreateUserValidationPipe)
   async create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return await this.usersService.createUser(createUserDto);
   }
@@ -60,7 +62,6 @@ export class UsersController {
     status: 404,
     description: `User with id not found.`,
   })
-  @UsePipes(ValidationPipe)
   getUserById(@Param('id') id: string) {
     return this.usersService.getUserById(id);
   }
@@ -79,7 +80,7 @@ export class UsersController {
     status: 400,
     description: 'Bad request. Check model arguments.',
   })
-  @UsePipes(ValidationPipe)
+  @UsePipes(UpdateUserValidationPipe)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.updateUser(id, updateUserDto);
   }
