@@ -29,7 +29,9 @@ export class AppJwtService {
    */
   verifyRequestHeaders(request): AppJwtData {
     if (!request || !request.headers || !request.headers.authorization) {
-      throw new BadRequestException('verifyRequestHeaders fail');
+      throw new Error(
+        'VerifyRequestHeaders fail. You forgot add Auth Bearer token?',
+      );
     }
     const token = (request.headers.authorization || '').replace(/^Bearer /, '');
     return this.verifyToken(token);

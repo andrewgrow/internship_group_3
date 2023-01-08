@@ -31,7 +31,7 @@ export class AppJwtGuard implements CanActivate {
       // two "!!" are the same as "if (foo) return true";
       return !!this.appJwtService.verifyRequestHeaders(request);
     } catch (error) {
-      throw new HttpException(error, HttpStatus.FORBIDDEN);
+      throw new HttpException(error.message, HttpStatus.FORBIDDEN);
     }
   }
 }
