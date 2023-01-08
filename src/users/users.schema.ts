@@ -22,7 +22,7 @@ export class User {
    * Check is decrypted password match to encrypted password at a model.
    * See an implementation method below.
    */
-  isPasswordValid: (decryptedPassword: string) => boolean;
+  isPasswordValid: (decryptedPassword: string) => Promise<boolean>;
 }
 
 export const UsersSchema = SchemaFactory.createForClass(User);

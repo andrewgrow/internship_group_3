@@ -72,8 +72,8 @@ export class UsersController {
     description: 'The record has been successfully patched.',
   })
   @ApiResponse({
-    status: 418,
-    description: `User with id not found. Will using "I am a teapot" exception as a joke (because we can).`,
+    status: 404,
+    description: `User with id not found.`,
   })
   @ApiResponse({
     status: 400,
