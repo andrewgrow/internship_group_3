@@ -3,6 +3,7 @@ import { UsersService } from '../../users/users.service';
 import { SignInDto } from './dto/signin.dto';
 import { AppJwtService } from '../jwt/app.jwt.service';
 import { AppJwtData } from '../jwt/app.jwt.data';
+import { CreateUserDto } from './dto/create.dto';
 
 @Injectable()
 export class AuthService {
@@ -32,5 +33,10 @@ export class AuthService {
     const data = { id: user['_id'] };
     const jwtToken = this.appJwtService.sign(data as AppJwtData);
     return JSON.stringify({ jwtToken: jwtToken });
+  }
+
+  async createUser(createUserDto: CreateUserDto) {
+    // delegate this work to a special service
+    return this.userService.createUser(createUserDto);
   }
 }

@@ -5,7 +5,7 @@ import {
   IsString,
   Length,
 } from 'class-validator';
-import { User } from '../users.schema';
+import { User } from '../../../users/users.schema';
 import { ApiProperty } from '@nestjs/swagger';
 import * as Joi from 'joi';
 
@@ -69,6 +69,6 @@ export class CreateUserDto implements Partial<User> {
 export const CreateUserValidationSchema = Joi.object({
   email: Joi.string().email().min(5).max(100).lowercase().required(),
   password: Joi.string().min(8).max(1024).required(),
-  firstName: Joi.string().min(2).max(20),
-  lastName: Joi.string().min(2).max(20),
+  firstName: Joi.string().min(2).max(20).required(),
+  lastName: Joi.string().min(2).max(20).required(),
 });

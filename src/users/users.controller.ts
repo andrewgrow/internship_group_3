@@ -10,15 +10,12 @@ import {
   HttpCode,
   UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create.dto';
+import { CreateUserDto } from '../security/auth/dto/create.dto';
 import { User } from './users.schema';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update.dto';
 import { ApiBody, ApiTags, ApiResponse } from '@nestjs/swagger';
-import {
-  CreateUserValidationPipe,
-  UpdateUserValidationPipe,
-} from './pipes/validation.pipe';
+import { UpdateUserValidationPipe } from './pipes/validation.pipe';
 import { AppJwtGuard } from '../security/jwt/app.jwt.guard';
 
 @ApiTags('Users')
@@ -34,26 +31,6 @@ export class UsersController {
   })
   async get(): Promise<User[]> {
     return await this.usersService.getAll();
-  }
-
-  @Post()
-  @ApiBody({ type: CreateUserDto })
-  @ApiResponse({
-    status: 201,
-    description: 'The record has been successfully created.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request. Check model arguments.',
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'Email is already taken. Set other email or log in.',
-  })
-  @HttpCode(201)
-  @UsePipes(CreateUserValidationPipe)
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return await this.usersService.createUser(createUserDto);
   }
 
   @Get('/:id')

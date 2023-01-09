@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { User, UserDocument } from './users.schema';
-import { CreateUserDto } from './dto/create.dto';
+import { CreateUserDto } from '../security/auth/dto/create.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
