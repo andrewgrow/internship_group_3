@@ -1,4 +1,5 @@
 import * as Joi from 'joi';
+import { ENVIRONMENT } from './enums/app.env';
 
 /**
  * To getting a configuration in your class need to do:
@@ -15,7 +16,7 @@ import * as Joi from 'joi';
 export const configuration = () => ({
   database: {
     name:
-      process.env.NODE_ENV === 'test'
+      process.env.NODE_ENV === ENVIRONMENT.TEST
         ? `${process.env.DB_DATABASE_NAME}-test`
         : process.env.DB_DATABASE_NAME,
     uri: `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}`,
@@ -28,7 +29,7 @@ export const configuration = () => ({
 export const validationSchema = Joi.object({
   NODE_ENV: Joi.string()
     .lowercase()
-    .valid('development', 'production', 'test')
-    .default('development'),
+    .valid(ENVIRONMENT.DEV, ENVIRONMENT.PRODUCTION, ENVIRONMENT.TEST)
+    .default(ENVIRONMENT.DEV),
   PORT: Joi.number().default(3000),
 });
