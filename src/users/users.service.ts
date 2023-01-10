@@ -2,6 +2,7 @@ import {
   ConflictException,
   ImATeapotException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { User } from './users.interface';
 import { CreateUserDto } from './dto/create.dto';
@@ -44,13 +45,14 @@ export class UsersService {
 
   private isEmailAlreadyExist(email: string) {
     let result = false;
-    this.users.map((user) => {
+    this.users.forEach((user) => {
       if (email === user.email) {
         result = true;
       }
 
       return user;
     });
+
     return result;
   }
 
@@ -96,5 +98,18 @@ export class UsersService {
     });
 
     return `Deleting user ${id}: ${result}`;
+  }
+
+  getUserById(id) {
+    let result: User = null;
+    this.users.forEach((user) => {
+      if (user.id === id) {
+        result = user;
+      }
+    });
+    if (result === null) {
+      throw new NotFoundException(`User with id ${id} not found.`);
+    }
+    return result;
   }
 }
