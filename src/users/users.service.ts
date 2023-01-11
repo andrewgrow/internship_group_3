@@ -14,7 +14,7 @@ export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async getAll(): Promise<User[]> {
-    return await this.userModel.find().exec();
+    return this.userModel.find().exec();
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -24,9 +24,8 @@ export class UsersService {
 
     const user = new this.userModel(createUserDto);
     await user.validate();
-    const result = await user.save();
 
-    return result;
+    return user.save();
   }
 
   private async isEmailAlreadyExist(email: string) {
@@ -53,9 +52,7 @@ export class UsersService {
       userDb.password = updateUserDto.password;
     }
 
-    const result = await userDb.save();
-
-    return result;
+    return userDb.save();
   }
 
   async deleteUser(id) {
