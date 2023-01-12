@@ -19,6 +19,7 @@ export class UpdateUserDto implements Partial<User> {
     nullable: true,
     example: 'user@example.com',
   })
+  @IsNotEmpty()
   @IsOptional()
   @Length(5, 100)
   @IsEmail()
@@ -48,6 +49,7 @@ export class UpdateUserDto implements Partial<User> {
     nullable: true,
     example: 'Doe',
   })
+  @IsNotEmpty()
   @IsOptional()
   @IsString()
   @Length(2, 20)
@@ -62,6 +64,7 @@ export class UpdateUserDto implements Partial<User> {
     nullable: true,
     example: 'Qwerty78',
   })
+  @IsNotEmpty()
   @IsOptional()
   @IsString()
   @Length(8, 1024)

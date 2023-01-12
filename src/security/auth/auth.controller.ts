@@ -34,8 +34,10 @@ export class AuthController {
     description: 'User not found. Try create account.',
   })
   @HttpCode(200)
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  async signIn(@Body() signInDto: SignInDto): Promise<any> {
+  async signIn(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    signInDto: SignInDto,
+  ): Promise<any> {
     return await this.authService.authUser(signInDto);
   }
 
