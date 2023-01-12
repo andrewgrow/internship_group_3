@@ -2,9 +2,9 @@ import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
+  Header,
   HttpCode,
   Post,
-  UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { SignInDto } from './dto/signin.dto';
@@ -34,11 +34,12 @@ export class AuthController {
     description: 'User not found. Try create account.',
   })
   @HttpCode(200)
+  @Header('content-type', 'application/json')
   async signIn(
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
     signInDto: SignInDto,
   ): Promise<any> {
-    return await this.authService.authUser(signInDto);
+    return this.authService.authUser(signInDto);
   }
 
   @Post('/sign_up')
@@ -56,8 +57,9 @@ export class AuthController {
     description: 'Email is already taken. Set other email or log in.',
   })
   @HttpCode(201)
-  @UsePipes(CreateUserValidationPipe)
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return await this.authService.createUser(createUserDto);
+  async create(
+    @Body(new CreateUserValidationPipe()) createUserDto: CreateUserDto,
+  ): Promise<User> {
+    return this.authService.createUser(createUserDto);
   }
 }
