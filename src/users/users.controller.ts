@@ -2,17 +2,26 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
+  HttpCode,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   Patch,
+  Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { User } from './users.schema';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update.dto';
-import { ApiBody, ApiTags, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiTags, ApiResponse, ApiConsumes } from '@nestjs/swagger';
 import { UpdateUserValidationPipe } from './pipes/validation.pipe';
 import { AppJwtGuard } from '../security/jwt/app.jwt.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiImplicitFile } from '@nestjs/swagger/dist/decorators/api-implicit-file.decorator';
 
 @ApiTags('Users')
 @Controller('/users')
@@ -74,5 +83,41 @@ export class UsersController {
   })
   delete(@Param('id') id: string) {
     return this.usersService.deleteUser(id);
+  }
+
+  @Post('/avatar')
+  @ApiConsumes('multipart/form-data')
+  @ApiImplicitFile({
+    name: 'avatar',
+    required: true,
+    description: 'An image file',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Successful uploaded.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request. Check image file.',
+  })
+  @UseInterceptors(FileInterceptor('avatar'))
+  @HttpCode(201)
+  uploadAvatar(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          // A number of bytes limit. 2 megabytes see as 1024 * 1024 * 2
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 2 }),
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    console.log(file);
+    return {
+      message:
+        'Upload successful. After processing image will be available in your profile.',
+    };
   }
 }
