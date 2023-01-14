@@ -22,6 +22,7 @@ import { UpdateUserValidationPipe } from './pipes/validation.pipe';
 import { AppJwtGuard } from '../security/jwt/app.jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiImplicitFile } from '@nestjs/swagger/dist/decorators/api-implicit-file.decorator';
+import { UserId } from '../security/jwt/app.jwt.decoder';
 
 @ApiTags('Users')
 @Controller('/users')
@@ -113,11 +114,13 @@ export class UsersController {
       }),
     )
     file: Express.Multer.File,
+    @UserId() userId: string,
   ) {
-    console.log(file);
+    this.usersService.uploadAvatar(file, userId);
     return {
       message:
-        'Upload successful. After processing image will be available in your profile.',
+        'Upload successful. ' +
+        'After processing image will be available in your profile (a little bit later).',
     };
   }
 }

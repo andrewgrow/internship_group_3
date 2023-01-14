@@ -34,6 +34,8 @@ export class AppJwtService {
       );
     }
     const token = (request.headers.authorization || '').replace(/^Bearer /, '');
-    return this.verifyToken(token);
+    const appJwtData: AppJwtData = this.verifyToken(token);
+    request.user_id = appJwtData.id;
+    return appJwtData;
   }
 }
