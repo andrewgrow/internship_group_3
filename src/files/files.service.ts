@@ -3,6 +3,8 @@ import { User } from '../users/users.schema';
 import { FilesUploaderAws } from './files.uploader.aws';
 import { FilesUploaderGcp } from './files.uploader.gcp';
 import { UserAvatar } from '../users/interfaces/user.avatar';
+import { ConfigService } from '@nestjs/config';
+import { FilesUploader } from './files.uploader';
 
 const thumbnailConfig = {
   width: 32,
@@ -16,6 +18,9 @@ export class FilesService {
 
   @Inject()
   private readonly filesUploaderGcp: FilesUploaderGcp;
+
+  @Inject()
+  private readonly configService: ConfigService;
 
   async compressImage(file: File): Promise<File> {
     console.log('TransformService', 'compressImage', file?.name);
@@ -35,6 +40,7 @@ export class FilesService {
     fileMulter: Express.Multer.File,
     user: User,
   ): Promise<UserAvatar> {
+    const filesUploader = this.selectUploaderByCloudConfigName();
     const userId = user['_id'].toString();
     const tempFile = await this.transformToTempFile(fileMulter);
     const compressedFile = await this.compressImage(tempFile);
@@ -43,11 +49,11 @@ export class FilesService {
       thumbnailConfig.width,
       thumbnailConfig.height,
     );
-    const originalAddress: string = await this.filesUploaderAws.uploadToCloud(
+    const originalAddress: string = await filesUploader.uploadToCloud(
       compressedFile,
       userId,
     );
-    const thumbnailAddress: string = await this.filesUploaderGcp.uploadToCloud(
+    const thumbnailAddress: string = await filesUploader.uploadToCloud(
       thumbnailFile,
       userId,
     );
@@ -55,5 +61,18 @@ export class FilesService {
       original: originalAddress,
       thumbnail: thumbnailAddress,
     };
+  }
+
+  selectUploaderByCloudConfigName(): FilesUploader {
+    const cloudProviderName = this.configService.get('cloudProvider.name');
+    if (cloudProviderName === 'aws') {
+      return this.filesUploaderAws;
+    } else if (cloudProviderName === 'gcp') {
+      return this.filesUploaderGcp;
+    } else {
+      throw new Error(
+        'Your cloud provider not defined. Please set it to .env file as CLOUD_STORAGE_PROVIDER="aws" or CLOUD_STORAGE_PROVIDER="gcp"',
+      );
+    }
   }
 }

@@ -25,13 +25,16 @@ export const configuration = () => ({
     secret: process.env.SECRET_KEY,
     expiresInSeconds: 60 * 60 * 24 * 365, // Seconds. 3600 is 1 hour.
   },
-  awsConfig: {},
-  gcpConfig: {
-    bucket:
-      process.env.GPC_BUCKET || 'you have to define process.env.GPC_BUCKET',
-    projectId:
-      process.env.GPC_PROJECT_ID ||
-      'you have to define process.env.GPC_PROJECT_ID',
+  cloudProvider: {
+    name: process.env.CLOUD_STORAGE_PROVIDER,
+    awsConfig: {},
+    gcpConfig: {
+      bucket:
+        process.env.GPC_BUCKET || 'you have to define process.env.GPC_BUCKET',
+      projectId:
+        process.env.GPC_PROJECT_ID ||
+        'you have to define process.env.GPC_PROJECT_ID',
+    },
   },
 });
 
