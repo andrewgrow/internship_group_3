@@ -104,6 +104,7 @@ export class UsersController {
   @UseInterceptors(
     FileInterceptor('avatar', {
       dest: './dist/tempFiles',
+      preservePath: true,
     }),
   )
   @HttpCode(201)
