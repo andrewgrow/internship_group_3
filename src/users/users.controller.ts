@@ -101,7 +101,11 @@ export class UsersController {
     status: 400,
     description: 'Bad request. Check image file.',
   })
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      dest: './dist/tempFiles',
+    }),
+  )
   @HttpCode(201)
   async uploadAvatar(
     @UploadedFile(
