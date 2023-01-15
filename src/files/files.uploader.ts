@@ -8,7 +8,8 @@ export abstract class FilesUploader {
 
   /**
    * @param file that have to been uploaded to some cloud.
+   * @param userId that will be used for creating folder with userId's name
    * @return Promise<string> address of cloud storage
    */
-  abstract uploadToCloud(file: File): Promise<string>;
+  abstract uploadToCloud(file: File, userId: string): Promise<string>;
 }

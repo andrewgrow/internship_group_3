@@ -103,7 +103,7 @@ export class UsersController {
   })
   @UseInterceptors(FileInterceptor('avatar'))
   @HttpCode(201)
-  uploadAvatar(
+  async uploadAvatar(
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -116,7 +116,7 @@ export class UsersController {
     file: Express.Multer.File,
     @UserId() userId: string,
   ) {
-    this.usersService.uploadAvatar(file, userId);
+    await this.usersService.uploadAvatar(file, userId);
     return {
       message:
         'Upload successful. ' +

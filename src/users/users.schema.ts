@@ -1,8 +1,20 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import { UserAvatar } from './interfaces/user.avatar';
 
 export type UserDocument = HydratedDocument<User>;
+
+@Schema()
+export class UserAvatarSubDocument implements UserAvatar {
+  @Prop()
+  original: string;
+
+  @Prop()
+  thumbnail: string;
+}
+
+const userAvatarSchema = SchemaFactory.createForClass(UserAvatarSubDocument);
 
 @Schema()
 export class User {
@@ -17,6 +29,9 @@ export class User {
 
   @Prop({ required: true })
   password: string;
+
+  @Prop({ type: userAvatarSchema })
+  avatar: UserAvatar;
 
   /**
    * Check is decrypted password match to encrypted password at a model.

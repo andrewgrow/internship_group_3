@@ -74,7 +74,7 @@ export class UsersService {
   }
 
   async getUserById(id): Promise<User> {
-    const result = await this.userModel.findById(id);
+    const result: User = await this.userModel.findById(id);
     if (result === null) {
       throw new NotFoundException(`User with id ${id} not found.`);
     }
@@ -86,13 +86,14 @@ export class UsersService {
     return result;
   }
 
-  uploadAvatar(fileMulter: Express.Multer.File, userId: string): boolean {
-    console.log('uploadAvatar', 'userId', userId);
-    // Promise.resolve(
-    //   fileService.uploadAvatarToClouds(f);
-    // ).catch((err) => {
-    //   console.error(err);
-    // });
-    return true;
+  async uploadAvatar(
+    fileMulter: Express.Multer.File,
+    userId: string,
+  ): Promise<boolean> {
+    const user: UserDocument = await this.userModel.findById(userId);
+    console.log('uploadAvatar', 'user', user['_id'].toString());
+    user.avatar = await this.fileService.uploadAvatarToClouds(fileMulter, user);
+    await user.save();
+    return Promise.resolve(true);
   }
 }
