@@ -7,9 +7,13 @@ export abstract class FilesUploader {
   protected readonly configService: ConfigService;
 
   /**
-   * @param file that have to been uploaded to some cloud.
+   * @param fileMulter that have to been uploaded to some cloud.
+   * Express.Multer.File containing file metadata and access information.
    * @param userId that will be used for creating folder with userId's name
    * @return Promise<string> address of cloud storage
    */
-  abstract uploadToCloud(file: File, userId: string): Promise<string>;
+  abstract uploadToCloud(
+    fileMulter: Express.Multer.File,
+    userId: string,
+  ): Promise<string>;
 }

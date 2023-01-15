@@ -3,11 +3,11 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class FilesUploaderGcp extends FilesUploader {
-  uploadToCloud(file: File, userId: string) {
+  async uploadToCloud(fileMulter: Express.Multer.File, userId: string) {
     // see './src/config/configuration.ts'
     const config = this.configService.get('cloudProvider.gcpConfig');
     console.log('AwsService', 'uploadToCloud', config);
-    const result = `GCP successful uploaded with userId: ${userId}, fileName: ${file?.name}`;
+    const result = `GCP successful uploaded with userId: ${userId}, fileName: ${fileMulter?.originalname}`;
     return Promise.resolve(result);
   }
 }

@@ -32,29 +32,25 @@ export class FilesService {
     return Promise.resolve(file);
   }
 
-  transformToTempFile(fileMulter: Express.Multer.File): File {
-    return undefined;
-  }
-
   async uploadAvatarToClouds(
     fileMulter: Express.Multer.File,
     user: User,
   ): Promise<UserAvatar> {
     const filesUploader = this.selectUploaderByCloudConfigName();
     const userId = user['_id'].toString();
-    const tempFile = await this.transformToTempFile(fileMulter);
-    const compressedFile = await this.compressImage(tempFile);
-    const thumbnailFile: File = await this.resizeImage(
-      compressedFile,
-      thumbnailConfig.width,
-      thumbnailConfig.height,
-    );
+    // const tempFile = await this.transformToTempFile(fileMulter);
+    // const compressedFile = await this.compressImage(tempFile);
+    // const thumbnailFile: File = await this.resizeImage(
+    //   compressedFile,
+    //   thumbnailConfig.width,
+    //   thumbnailConfig.height,
+    // );
     const originalAddress: string = await filesUploader.uploadToCloud(
-      compressedFile,
+      fileMulter,
       userId,
     );
     const thumbnailAddress: string = await filesUploader.uploadToCloud(
-      thumbnailFile,
+      fileMulter,
       userId,
     );
     return {
