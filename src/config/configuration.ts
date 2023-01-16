@@ -27,7 +27,21 @@ export const configuration = () => ({
   },
   cloudProvider: {
     name: process.env.CLOUD_STORAGE_PROVIDER,
-    awsConfig: {},
+    awsConfig: {
+      credentials: {
+        accessKeyId:
+          process.env.AWS_ACCESS_KEY_ID ||
+          'you have to define process.env.AWS_ACCESS_KEY_ID',
+        secretAccessKey:
+          process.env.AWS_SECRET_ACCESS_KEY ||
+          'you have to define process.env.AWS_SECRET_ACCESS_KEY',
+      },
+      region:
+        process.env.AWS_REGION || 'you have to define process.env.AWS_REGION',
+      bucketName:
+        process.env.AWS_BUCKET_NAME ||
+        'you have to define process.env.AWS_BUCKET_NAME',
+    },
     gcpConfig: {
       bucket:
         process.env.GPC_BUCKET || 'you have to define process.env.GPC_BUCKET',

@@ -1,5 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { Inject, Injectable } from '@nestjs/common';
+import * as Buffer from 'buffer';
+import * as fs from 'fs';
+import { Readable } from 'stream';
 
 @Injectable()
 export abstract class FilesUploader {
@@ -16,4 +19,17 @@ export abstract class FilesUploader {
     fileMulter: Express.Multer.File,
     userId: string,
   ): Promise<string>;
+
+  protected multerToBuffer(fileMulter: Express.Multer.File): Buffer {
+    if (fs.existsSync(fileMulter.path)) {
+      return fs.readFileSync(fileMulter.path);
+    } else {
+      throw new Error('fileMulter.path contains incorrect file address');
+    }
+  }
+
+  protected multerToReadable(fileMulter: Express.Multer.File): Readable {
+    const buffer = this.multerToBuffer(fileMulter);
+    return Readable.from(buffer);
+  }
 }

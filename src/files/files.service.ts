@@ -5,6 +5,8 @@ import { FilesUploaderGcp } from './files.uploader.gcp';
 import { UserAvatar } from '../users/interfaces/user.avatar';
 import { ConfigService } from '@nestjs/config';
 import { FilesUploader } from './files.uploader';
+import { Transform } from 'stream';
+import * as Buffer from 'buffer';
 
 const thumbnailConfig = {
   width: 32,
@@ -22,9 +24,16 @@ export class FilesService {
   @Inject()
   private readonly configService: ConfigService;
 
-  async compressImage(file: File): Promise<File> {
-    console.log('TransformService', 'compressImage', file?.name);
-    return Promise.resolve(file);
+  compressImage(): Transform {
+    console.log('TransformService', 'compressImage');
+    return new Transform({
+      readableObjectMode: true,
+
+      transform(chunk, encoding, callback) {
+        this.push(chunk);
+        callback();
+      },
+    });
   }
 
   async resizeImage(file: File, width: number, height: number): Promise<File> {
@@ -38,21 +47,18 @@ export class FilesService {
   ): Promise<UserAvatar> {
     const filesUploader = this.selectUploaderByCloudConfigName();
     const userId = user['_id'].toString();
-    // const tempFile = await this.transformToTempFile(fileMulter);
-    // const compressedFile = await this.compressImage(tempFile);
-    // const thumbnailFile: File = await this.resizeImage(
-    //   compressedFile,
-    //   thumbnailConfig.width,
-    //   thumbnailConfig.height,
-    // );
+
     const originalAddress: string = await filesUploader.uploadToCloud(
       fileMulter,
       userId,
     );
-    const thumbnailAddress: string = await filesUploader.uploadToCloud(
-      fileMulter,
-      userId,
-    );
+
+    const thumbnailAddress = undefined; // fixme test data!
+    // const thumbnailAddress: string = await filesUploader.uploadToCloud(
+    //   fileMulter,
+    //   userId,
+    // );
+
     return {
       original: originalAddress,
       thumbnail: thumbnailAddress,
