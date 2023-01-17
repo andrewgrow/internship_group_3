@@ -12,7 +12,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create.dto';
-import { User } from './users.interface';
+import { User } from './users.schema';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update.dto';
 import { ApiBody, ApiTags, ApiResponse } from '@nestjs/swagger';
@@ -27,8 +27,8 @@ export class UsersController {
     status: 200,
     description: 'The records have been successfully found.',
   })
-  get(): User[] {
-    return this.usersService.getAll();
+  async get(): Promise<User[]> {
+    return await this.usersService.getAll();
   }
 
   @Post()
@@ -47,8 +47,8 @@ export class UsersController {
   })
   @HttpCode(201)
   @UsePipes(ValidationPipe)
-  create(@Body() createUserDto: CreateUserDto): User {
-    return this.usersService.createUser(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+    return await this.usersService.createUser(createUserDto);
   }
 
   @Get('/:id')
@@ -61,7 +61,7 @@ export class UsersController {
     description: `User with id not found.`,
   })
   @UsePipes(ValidationPipe)
-  getUserById(@Param('id', ParseIntPipe) id: number) {
+  getUserById(@Param('id') id: string) {
     return this.usersService.getUserById(id);
   }
 
@@ -80,10 +80,7 @@ export class UsersController {
     description: 'Bad request. Check model arguments.',
   })
   @UsePipes(ValidationPipe)
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.updateUser(id, updateUserDto);
   }
 
@@ -93,10 +90,10 @@ export class UsersController {
     description: 'The record has been successfully deleted.',
   })
   @ApiResponse({
-    status: 418,
-    description: `User with id not found. Will using "I am a teapot" exception as a joke (because we can).`,
+    status: 404,
+    description: `User account not found for deleting.`,
   })
-  delete(@Param('id', ParseIntPipe) id: number) {
+  delete(@Param('id') id: string) {
     return this.usersService.deleteUser(id);
   }
 }
