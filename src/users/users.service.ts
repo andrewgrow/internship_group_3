@@ -9,6 +9,7 @@ import { CreateUserDto } from '../security/auth/dto/create.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { FilesService } from '../files/files.service';
+import { UserAvatar } from './interfaces/user.avatar';
 
 @Injectable()
 export class UsersService {
@@ -89,11 +90,11 @@ export class UsersService {
   async uploadAvatar(
     fileMulter: Express.Multer.File,
     userId: string,
-  ): Promise<boolean> {
+  ): Promise<UserAvatar> {
     const user: UserDocument = await this.userModel.findById(userId);
     console.log('uploadAvatar', 'user', user['_id'].toString());
     user.avatar = await this.fileService.uploadAvatarToClouds(fileMulter, user);
     await user.save();
-    return Promise.resolve(true);
+    return user.avatar;
   }
 }

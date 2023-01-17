@@ -121,11 +121,7 @@ export class UsersController {
     file: Express.Multer.File,
     @UserId() userId: string,
   ) {
-    await this.usersService.uploadAvatar(file, userId);
-    return {
-      message:
-        'Upload successful. ' +
-        'After processing image will be available in your profile (a little bit later).',
-    };
+    const result = await this.usersService.uploadAvatar(file, userId);
+    return result;
   }
 }

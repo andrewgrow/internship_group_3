@@ -5,8 +5,13 @@ import { FilesUploaderGcp } from './files.uploader.gcp';
 import { UserAvatar } from '../users/interfaces/user.avatar';
 import { ConfigService } from '@nestjs/config';
 import { FilesUploader } from './files.uploader';
-import { Transform } from 'stream';
-import * as Buffer from 'buffer';
+import {
+  saveBufferAsFile,
+  compressImage,
+  readable,
+  resizeImage,
+  removeFile,
+} from './files.utils';
 
 const thumbnailConfig = {
   width: 32,
@@ -24,23 +29,6 @@ export class FilesService {
   @Inject()
   private readonly configService: ConfigService;
 
-  compressImage(): Transform {
-    console.log('TransformService', 'compressImage');
-    return new Transform({
-      readableObjectMode: true,
-
-      transform(chunk, encoding, callback) {
-        this.push(chunk);
-        callback();
-      },
-    });
-  }
-
-  async resizeImage(file: File, width: number, height: number): Promise<File> {
-    console.log('TransformService', 'resizeImage', width, height);
-    return Promise.resolve(file);
-  }
-
   async uploadAvatarToClouds(
     fileMulter: Express.Multer.File,
     user: User,
@@ -48,21 +36,36 @@ export class FilesService {
     const filesUploader = this.selectUploaderByCloudConfigName();
     const userId = user['_id'].toString();
 
-    const originalAddress: string = await filesUploader.uploadToCloud(
+    // work with original image size
+    readable(fileMulter)
+      .pipe(compressImage())
+      .pipe(saveBufferAsFile(fileMulter.path));
+
+    const imageOnCloudWithOriginalSize: string =
+      await filesUploader.uploadToCloud(fileMulter, userId);
+
+    // work with thumbnail
+    readable(fileMulter)
+      .pipe(resizeImage(thumbnailConfig.width, thumbnailConfig.height))
+      .pipe(saveBufferAsFile(fileMulter.path));
+
+    fileMulter.originalname = `thumbnail-${fileMulter.originalname}`;
+
+    const thumbnailAddress: string = await filesUploader.uploadToCloud(
       fileMulter,
       userId,
     );
 
-    const thumbnailAddress = undefined; // fixme test data!
-    // const thumbnailAddress: string = await filesUploader.uploadToCloud(
-    //   fileMulter,
-    //   userId,
-    // );
-
-    return {
-      original: originalAddress,
+    const result = {
+      original: imageOnCloudWithOriginalSize,
       thumbnail: thumbnailAddress,
     };
+
+    console.log('Upload result:', result);
+
+    removeFile(fileMulter.path); // delete tempFile
+
+    return result;
   }
 
   selectUploaderByCloudConfigName(): FilesUploader {
