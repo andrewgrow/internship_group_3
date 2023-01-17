@@ -33,46 +33,28 @@ export class FilesService {
     fileMulter: Express.Multer.File,
     user: User,
   ): Promise<UserAvatar> {
-    const filesUploader = this.selectUploaderByCloudConfigName();
-    const userId = user['_id'].toString();
+    const filesUploader = this.selectUploaderByCloudConfigName(); // aws or gcp
+    const userId = user['_id'].toString(); // using for creating path on cloud
 
-    const result = await new Promise((resolve, reject): void => {
-      readable(fileMulter)
-        .pipe(compressImage())
-        .pipe(saveBufferAsFile(fileMulter.path))
-        .on('finish', () => {
-          resolve(null);
-        })
-        .on('error', (err) => {
-          reject(err);
-        });
-    })
+    // result that will be filled after uploading
+    const result: UserAvatar = {
+      original: undefined,
+      thumbnail: undefined,
+    };
+
+    await this.processOriginalSize(fileMulter)
       .then(() => {
         return filesUploader.uploadToCloud(fileMulter, userId);
       })
       .then(async (imageOnCloudWithOriginalSize: string) => {
-        return new Promise((resolve, reject) => {
-          readable(fileMulter)
-            .pipe(resizeImage(thumbnailConfig.width, thumbnailConfig.height))
-            .pipe(saveBufferAsFile(fileMulter.path))
-            .on('finish', () => {
-              fileMulter.originalname = `thumbnail-${fileMulter.originalname}`;
-              resolve(imageOnCloudWithOriginalSize);
-            })
-            .on('error', (err) => {
-              reject(err);
-            });
-        });
+        result.original = imageOnCloudWithOriginalSize;
+        return this.processThumbnailFile(fileMulter);
       })
-      .then(async (imageOnCloudWithOriginalSize: string) => {
-        const thumbnailAddress = await filesUploader.uploadToCloud(
-          fileMulter,
-          userId,
-        );
-        return {
-          original: imageOnCloudWithOriginalSize,
-          thumbnail: thumbnailAddress,
-        };
+      .then(async () => {
+        return filesUploader.uploadToCloud(fileMulter, userId);
+      })
+      .then((cloudAddressThumbnail) => {
+        result.thumbnail = cloudAddressThumbnail;
       });
 
     console.log('Upload result:', result);
@@ -82,6 +64,9 @@ export class FilesService {
     return result;
   }
 
+  /**
+   * We have to select AWS or GCP cloud provider by config settings.
+   */
   selectUploaderByCloudConfigName(): FilesUploader {
     const cloudProviderName = this.configService.get('cloudProvider.name');
     if (cloudProviderName === 'aws') {
@@ -93,5 +78,47 @@ export class FilesService {
         'Your cloud provider not defined. Please set it to .env file as CLOUD_STORAGE_PROVIDER="aws" or CLOUD_STORAGE_PROVIDER="gcp"',
       );
     }
+  }
+
+  /**
+   * If you do not wait for the promise, then the transformation will end later
+   * than the file is uploaded to the cloud.
+   * So, we need to wrap pipes to promise and waiting until all transformations
+   * pipe will be done and resolve promise.
+   * @param fileMulter with data that have to be transformed
+   */
+  private processOriginalSize(fileMulter: Express.Multer.File): Promise<void> {
+    return new Promise((resolve, reject): void => {
+      readable(fileMulter)
+        .pipe(compressImage())
+        .pipe(saveBufferAsFile(fileMulter.path))
+        .on('finish', () => {
+          resolve(null);
+        })
+        .on('error', (err) => {
+          reject(err);
+        });
+    });
+  }
+
+  /**
+   * The same transformation as with original size but for thumbnail.
+   * We have to waiting until all transformations
+   * pipe will be done and resolve promise.
+   * @param fileMulter with data that have to be transformed
+   */
+  private processThumbnailFile(fileMulter: Express.Multer.File): Promise<void> {
+    return new Promise((resolve, reject) => {
+      readable(fileMulter)
+        .pipe(resizeImage(thumbnailConfig.width, thumbnailConfig.height))
+        .pipe(saveBufferAsFile(fileMulter.path))
+        .on('finish', () => {
+          fileMulter.originalname = `thumbnail-${fileMulter.originalname}`;
+          resolve(null);
+        })
+        .on('error', (err) => {
+          reject(err);
+        });
+    });
   }
 }
