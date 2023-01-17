@@ -36,30 +36,44 @@ export class FilesService {
     const filesUploader = this.selectUploaderByCloudConfigName();
     const userId = user['_id'].toString();
 
-    // work with original image size
-    readable(fileMulter)
-      .pipe(compressImage())
-      .pipe(saveBufferAsFile(fileMulter.path));
-
-    const imageOnCloudWithOriginalSize: string =
-      await filesUploader.uploadToCloud(fileMulter, userId);
-
-    // work with thumbnail
-    readable(fileMulter)
-      .pipe(resizeImage(thumbnailConfig.width, thumbnailConfig.height))
-      .pipe(saveBufferAsFile(fileMulter.path));
-
-    fileMulter.originalname = `thumbnail-${fileMulter.originalname}`;
-
-    const thumbnailAddress: string = await filesUploader.uploadToCloud(
-      fileMulter,
-      userId,
-    );
-
-    const result = {
-      original: imageOnCloudWithOriginalSize,
-      thumbnail: thumbnailAddress,
-    };
+    const result = await new Promise((resolve, reject): void => {
+      readable(fileMulter)
+        .pipe(compressImage())
+        .pipe(saveBufferAsFile(fileMulter.path))
+        .on('finish', () => {
+          resolve(null);
+        })
+        .on('error', (err) => {
+          reject(err);
+        });
+    })
+      .then(() => {
+        return filesUploader.uploadToCloud(fileMulter, userId);
+      })
+      .then(async (imageOnCloudWithOriginalSize: string) => {
+        return new Promise((resolve, reject) => {
+          readable(fileMulter)
+            .pipe(resizeImage(thumbnailConfig.width, thumbnailConfig.height))
+            .pipe(saveBufferAsFile(fileMulter.path))
+            .on('finish', () => {
+              fileMulter.originalname = `thumbnail-${fileMulter.originalname}`;
+              resolve(imageOnCloudWithOriginalSize);
+            })
+            .on('error', (err) => {
+              reject(err);
+            });
+        });
+      })
+      .then(async (imageOnCloudWithOriginalSize: string) => {
+        const thumbnailAddress = await filesUploader.uploadToCloud(
+          fileMulter,
+          userId,
+        );
+        return {
+          original: imageOnCloudWithOriginalSize,
+          thumbnail: thumbnailAddress,
+        };
+      });
 
     console.log('Upload result:', result);
 
