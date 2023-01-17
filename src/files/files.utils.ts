@@ -1,7 +1,7 @@
 import * as Buffer from 'buffer';
 import * as fs from 'fs';
 import { Readable, Writable, Transform, TransformCallback } from 'stream';
-import sharp from 'sharp';
+import * as sharp from 'sharp';
 
 export function multerToBuffer(fileMulter: Express.Multer.File): Buffer {
   if (fs.existsSync(fileMulter.path)) {
