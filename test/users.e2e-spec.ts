@@ -136,6 +136,19 @@ describe('Users Routes', () => {
       expect(responseUserPassword).not.toEqual('password');
     });
 
+    it('POST /users/avatar should upload correct photo', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/users/avatar')
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .set('content-type', 'multipart/form-data')
+        .attach('avatar', testImage)
+        .expect(201);
+
+      const result = JSON.parse(response.text);
+      expect(result.original).toBeTruthy();
+      expect(result.thumbnail).toBeTruthy();
+    });
+
     it('DELETE /users/{id} should return OK and clear user', async () => {
       const response = await request(app.getHttpServer())
         .delete(`/users/${user['_id']}`)
@@ -147,20 +160,6 @@ describe('Users Routes', () => {
     });
 
     describe('POST /users/avatar', () => {
-      it('should upload correct photo', async () => {
-        const response = await request(app.getHttpServer())
-          .post('/users/avatar')
-          .set('Authorization', `Bearer ${jwtToken}`)
-          .set('content-type', 'multipart/form-data')
-          .attach('avatar', testImage)
-          .expect(201);
-
-        const result = response.body.message;
-        expect(result).toEqual(
-          'Upload successful. After processing image will be available in your profile.',
-        );
-      });
-
       it('should NOT upload wrong photo or other file', async () => {
         const response = await request(app.getHttpServer())
           .post('/users/avatar')
