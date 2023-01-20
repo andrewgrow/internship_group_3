@@ -43,18 +43,20 @@ export class FilesService {
     };
 
     await this.processOriginalSize(fileMulter)
-      .then(() => {
+      .then((originalFileName) => {
+        console.log('Upload to cloud:', originalFileName);
         return filesUploader.uploadToCloud(fileMulter, userId);
       })
-      .then(async (imageOnCloudWithOriginalSize: string) => {
-        result.original = imageOnCloudWithOriginalSize;
+      .then(async (imageAddressOnCloud: string) => {
+        result.original = imageAddressOnCloud;
         return this.processThumbnailFile(fileMulter);
       })
-      .then(async () => {
+      .then(async (thumbnailFileName) => {
+        console.log('Upload to cloud:', thumbnailFileName);
         return filesUploader.uploadToCloud(fileMulter, userId);
       })
-      .then((cloudAddressThumbnail) => {
-        result.thumbnail = cloudAddressThumbnail;
+      .then((imageAddressOnCloud) => {
+        result.thumbnail = imageAddressOnCloud;
       });
 
     console.log('Upload result:', result);
@@ -85,15 +87,15 @@ export class FilesService {
    * than the file is uploaded to the cloud.
    * So, we need to wrap pipes to promise and waiting until all transformations
    * pipe will be done and resolve promise.
-   * @param fileMulter with data that have to be transformed
+   * @param multer with data that have to be transformed
    */
-  private processOriginalSize(fileMulter: Express.Multer.File): Promise<void> {
+  private processOriginalSize(multer: Express.Multer.File): Promise<string> {
     return new Promise((resolve, reject): void => {
-      readable(fileMulter)
+      readable(multer)
         .pipe(compressImage())
-        .pipe(saveBufferAsFile(fileMulter.path))
+        .pipe(saveBufferAsFile(multer.path))
         .on('finish', () => {
-          resolve(null);
+          resolve(multer.path);
         })
         .on('error', (err) => {
           reject(err);
@@ -105,16 +107,16 @@ export class FilesService {
    * The same transformation as with original size but for thumbnail.
    * We have to waiting until all transformations
    * pipe will be done and resolve promise.
-   * @param fileMulter with data that have to be transformed
+   * @param multer with data that have to be transformed
    */
-  private processThumbnailFile(fileMulter: Express.Multer.File): Promise<void> {
+  private processThumbnailFile(multer: Express.Multer.File): Promise<string> {
     return new Promise((resolve, reject) => {
-      readable(fileMulter)
+      readable(multer)
         .pipe(resizeImage(thumbnailConfig.width, thumbnailConfig.height))
-        .pipe(saveBufferAsFile(fileMulter.path))
+        .pipe(saveBufferAsFile(multer.path))
         .on('finish', () => {
-          fileMulter.originalname = `thumbnail-${fileMulter.originalname}`;
-          resolve(null);
+          multer.originalname = `thumbnail-${multer.originalname}`;
+          resolve(multer.originalname);
         })
         .on('error', (err) => {
           reject(err);
