@@ -21,6 +21,10 @@ export const configuration = () => ({
         : process.env.DB_DATABASE_NAME,
     uri: `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}`,
   },
+  jwt: {
+    secret: process.env.SECRET_KEY,
+    expiresInSeconds: 60 * 60 * 24 * 365, // Seconds. 3600 is 1 hour.
+  },
 });
 
 /**

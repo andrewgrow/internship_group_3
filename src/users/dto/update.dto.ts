@@ -7,6 +7,7 @@ import {
 } from 'class-validator';
 import { User } from '../users.schema';
 import { ApiProperty } from '@nestjs/swagger';
+import * as Joi from 'joi';
 
 export class UpdateUserDto implements Partial<User> {
   @ApiProperty({
@@ -66,3 +67,10 @@ export class UpdateUserDto implements Partial<User> {
   @Length(8, 1024)
   password: string;
 }
+
+export const UpdateUserValidationSchema = Joi.object({
+  email: Joi.string().email().min(5).max(100).lowercase(),
+  password: Joi.string().min(8).max(1024),
+  firstName: Joi.string().min(2).max(20),
+  lastName: Joi.string().min(2).max(20),
+});

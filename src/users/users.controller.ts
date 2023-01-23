@@ -4,21 +4,23 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   UsePipes,
-  ValidationPipe,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create.dto';
+import { CreateUserDto } from '../security/auth/dto/create.dto';
 import { User } from './users.schema';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update.dto';
 import { ApiBody, ApiTags, ApiResponse } from '@nestjs/swagger';
+import { UpdateUserValidationPipe } from './pipes/validation.pipe';
+import { AppJwtGuard } from '../security/jwt/app.jwt.guard';
 
 @ApiTags('Users')
 @Controller('/users')
+@UseGuards(AppJwtGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
@@ -31,26 +33,6 @@ export class UsersController {
     return await this.usersService.getAll();
   }
 
-  @Post()
-  @ApiBody({ type: CreateUserDto })
-  @ApiResponse({
-    status: 201,
-    description: 'The record has been successfully created.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request. Check model arguments.',
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'Email is already taken. Set other email or log in.',
-  })
-  @HttpCode(201)
-  @UsePipes(ValidationPipe)
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return await this.usersService.createUser(createUserDto);
-  }
-
   @Get('/:id')
   @ApiResponse({
     status: 200,
@@ -60,7 +42,6 @@ export class UsersController {
     status: 404,
     description: `User with id not found.`,
   })
-  @UsePipes(ValidationPipe)
   getUserById(@Param('id') id: string) {
     return this.usersService.getUserById(id);
   }
@@ -72,14 +53,14 @@ export class UsersController {
     description: 'The record has been successfully patched.',
   })
   @ApiResponse({
-    status: 418,
-    description: `User with id not found. Will using "I am a teapot" exception as a joke (because we can).`,
+    status: 404,
+    description: `User with id not found.`,
   })
   @ApiResponse({
     status: 400,
     description: 'Bad request. Check model arguments.',
   })
-  @UsePipes(ValidationPipe)
+  @UsePipes(UpdateUserValidationPipe)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.updateUser(id, updateUserDto);
   }

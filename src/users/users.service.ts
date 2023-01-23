@@ -1,11 +1,10 @@
 import {
   ConflictException,
-  ImATeapotException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { User, UserDocument } from './users.schema';
-import { CreateUserDto } from './dto/create.dto';
+import { CreateUserDto } from '../security/auth/dto/create.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -37,8 +36,9 @@ export class UsersService {
     const userDb = await this.userModel.findById(id);
 
     if (userDb === null) {
-      throw new Error(`User with id ${id} not found for patching!`);
+      throw new NotFoundException(`User with id ${id} not found for patching.`);
     }
+
     if (updateUserDto.firstName) {
       userDb.firstName = updateUserDto.firstName;
     }
@@ -68,6 +68,15 @@ export class UsersService {
   }
 
   async getUserById(id): Promise<User> {
-    return this.userModel.findById(id);
+    const result = await this.userModel.findById(id);
+    if (result === null) {
+      throw new NotFoundException(`User with id ${id} not found.`);
+    }
+    return result;
+  }
+
+  async getUserByEmail(email): Promise<User> {
+    const result = await this.userModel.findOne({ email: email }).exec();
+    return result;
   }
 }
