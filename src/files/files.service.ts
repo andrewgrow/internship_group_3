@@ -36,32 +36,14 @@ export class FilesService {
     const filesUploader = this.selectUploaderByCloudConfigName(); // aws or gcp
     const userId = user['_id'].toString(); // using for creating path on cloud
 
-    // result that will be filled after uploading
-    const result: UserAvatar = {
-      original: undefined,
-      thumbnail: undefined,
-    };
-
-    await this.processOriginalSize(fileMulter)
-      .then(() => {
-        return filesUploader.uploadToCloud(fileMulter, userId);
-      })
-      .then(async (imageOnCloudWithOriginalSize: string) => {
-        result.original = imageOnCloudWithOriginalSize;
-        return this.processThumbnailFile(fileMulter);
-      })
-      .then(async () => {
-        return filesUploader.uploadToCloud(fileMulter, userId);
-      })
-      .then((cloudAddressThumbnail) => {
-        result.thumbnail = cloudAddressThumbnail;
-      });
-
-    console.log('Upload result:', result);
+    await this.processOriginalSize(fileMulter);
+    const original = await filesUploader.uploadToCloud(fileMulter, userId);
+    await this.processThumbnailFile(fileMulter);
+    const thumbnail = await filesUploader.uploadToCloud(fileMulter, userId);
 
     removeFile(fileMulter.path); // delete tempFile
 
-    return result;
+    return { original: original, thumbnail: thumbnail };
   }
 
   /**
