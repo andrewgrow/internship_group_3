@@ -5,12 +5,8 @@ import {
   Get,
   Param,
   Patch,
-  Post,
-  UsePipes,
-  HttpCode,
   UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto } from '../security/auth/dto/create.dto';
 import { User } from './users.schema';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update.dto';
@@ -60,8 +56,10 @@ export class UsersController {
     status: 400,
     description: 'Bad request. Check model arguments.',
   })
-  @UsePipes(UpdateUserValidationPipe)
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(
+    @Param('id') id: string,
+    @Body(UpdateUserValidationPipe) updateUserDto: UpdateUserDto,
+  ) {
     return this.usersService.updateUser(id, updateUserDto);
   }
 

@@ -18,7 +18,7 @@ export class AppJwtService {
    * Check if JWT token is valid.
    * @param token String
    */
-  verifyToken(token: string) {
+  verifyToken(token: string): AppJwtData {
     return this.jwtService.verify(token);
   }
 
