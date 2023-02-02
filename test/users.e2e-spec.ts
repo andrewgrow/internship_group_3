@@ -10,6 +10,8 @@ import { AppJwtService } from '../src/security/jwt/app.jwt.service';
 import { AppJwtData } from '../src/security/jwt/app.jwt.data';
 
 describe('Users Routes', () => {
+  const testImage = `${__dirname}/assets/test_img_cat.jpg`;
+  const testFile = `${__dirname}/assets/test.txt`;
   let app: INestApplication;
   let usersService: UsersService;
   let appJwtService: AppJwtService;
@@ -134,6 +136,19 @@ describe('Users Routes', () => {
       expect(responseUserPassword).not.toEqual('password');
     });
 
+    it('POST /users/avatar should upload correct photo', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/users/avatar')
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .set('content-type', 'multipart/form-data')
+        .attach('avatar', testImage)
+        .expect(201);
+
+      const result = JSON.parse(response.text);
+      expect(result.original).toBeTruthy();
+      expect(result.thumbnail).toBeTruthy();
+    });
+
     it('DELETE /users/{id} should return OK and clear user', async () => {
       const response = await request(app.getHttpServer())
         .delete(`/users/${user['_id']}`)
@@ -142,6 +157,24 @@ describe('Users Routes', () => {
       expect(response.body.message).toEqual(
         'Your account has been deleted. Good bye!',
       );
+    });
+
+    describe('POST /users/avatar', () => {
+      it('should NOT upload wrong photo or other file', async () => {
+        const response = await request(app.getHttpServer())
+          .post('/users/avatar')
+          .set('Authorization', `Bearer ${jwtToken}`)
+          .set('content-type', 'multipart/form-data')
+          .attach('avatar', testFile)
+          .expect(400);
+
+        const result = JSON.parse(response.text);
+        expect(result).toEqual({
+          error: 'Bad Request',
+          message: 'Validation failed (expected type is .(png|jpeg|jpg))',
+          statusCode: 400,
+        });
+      });
     });
   });
 });

@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,10 +8,16 @@ import { User, UserDocument } from './users.schema';
 import { CreateUserDto } from '../security/auth/dto/create.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { FilesService } from '../files/files.service';
+import { UserAvatar } from './interfaces/user.avatar';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  @InjectModel(User.name)
+  private userModel: Model<UserDocument>;
+
+  @Inject(FilesService)
+  private readonly fileService: FilesService;
 
   async getAll(): Promise<User[]> {
     return this.userModel.find().exec();
@@ -68,7 +75,7 @@ export class UsersService {
   }
 
   async getUserById(id): Promise<User> {
-    const result = await this.userModel.findById(id);
+    const result: User = await this.userModel.findById(id);
     if (result === null) {
       throw new NotFoundException(`User with id ${id} not found.`);
     }
@@ -78,5 +85,16 @@ export class UsersService {
   async getUserByEmail(email): Promise<User> {
     const result = await this.userModel.findOne({ email: email }).exec();
     return result;
+  }
+
+  async uploadAvatar(
+    fileMulter: Express.Multer.File,
+    userId: string,
+  ): Promise<UserAvatar> {
+    const user: UserDocument = await this.userModel.findById(userId);
+    console.log('uploadAvatar', 'user', user['_id'].toString());
+    user.avatar = await this.fileService.uploadAvatarToClouds(fileMulter, user);
+    await user.save();
+    return user.avatar;
   }
 }
